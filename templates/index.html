@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Generator - Professional MVP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+            margin: 0;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 40px);
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            padding: 48px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            padding: 48px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .results-placeholder {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-section {
+                position: static;
+            }
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #ff006e, #8338ec);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #e0e6ed;
+            font-size: 16px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        select {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        select option {
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 12px;
+            border: none;
+        }
+        
+        select option:hover {
+            background: #00d4ff;
+            color: #000000;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #00d4ff, #ff006e);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.4);
+            background: linear-gradient(135deg, #00b8d4, #e91e63);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .loading h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #00d4ff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .result-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .result-item img {
+            max-width: 100%;
+            height: 400px;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            background: white;
+        }
+        
+        .result-item img:hover {
+            transform: scale(1.05);
+        }
+        
+        .result-item h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .result-item p {
+            color: #e0e6ed;
+            line-height: 1.6;
+        }
+        
+        .product-info p {
+            color: #e0e6ed;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        
+        .error {
+            display: none;
+            background: rgba(255, 0, 110, 0.1);
+            color: #ff6b9d;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #ff006e;
+            border: 1px solid rgba(255, 0, 110, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .json-output {
+            margin-top: 20px;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #00d4ff;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Side - Form Section -->
+        <div class="form-section">
+            <h1>🎨 AI Product Generator</h1>
+            <p style="text-align: center; margin-bottom: 30px; color: #b0b8c1; font-size: 16px; font-weight: 400;">Create stunning designs for multiple products using AI</p>
+            
+            <div class="input-section">
+                <label for="prompt">Enter your design prompt:</label>
+                <input type="text" id="prompt" placeholder="e.g., cyberpunk lion, mystical forest, retro synthwave" style="color: #ffffff;">
+            </div>
+            
+            <div class="input-section">
+                <label for="productType">Select Product Type:</label>
+                <select id="productType" onchange="updateGenerateButton()">
+                    <option value="hoodie">🧥 Hoodie (Gildan 18500 Heavy Blend)</option>
+                    <option value="tshirt">👕 T-Shirt (Bella + Canvas 3001 Unisex)</option>
+                    <option value="mug">☕ Mug (11oz Ceramic)</option>
+                </select>
+            </div>
+            
+            <div class="input-section">
+                <label for="style">Image Style:</label>
+                <select id="style">
+                    <option value="natural">Natural</option>
+                    <option value="vivid">Vivid (More Creative)</option>
+                </select>
+            </div>
+            
+            <div class="input-section">
+                <label for="quality">Image Quality:</label>
+                <select id="quality">
+                    <option value="standard">Standard</option>
+                    <option value="hd">HD (Premium)</option>
+                </select>
+            </div>
+            
+            <button class="generate-btn" id="generateBtn" onclick="generateProduct()">🚀 Generate Hoodie</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your awesome hoodie... This may take a minute!</p>
+            </div>
+            
+            <div class="error" id="error"></div>
+        </div>
+        
+        <!-- Right Side - Results Section -->
+        <div class="results-section">
+            <div class="results-placeholder" id="placeholder">
+                <h3>🎨 Your Generated Product Will Appear Here</h3>
+                <p>Enter a prompt and click generate to see your AI-created product design</p>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="main-result">
+                    <div class="result-item" style="text-align: center; margin-bottom: 20px;">
+                        <img id="generated-image" alt="Generated product" style="width: 100%; max-width: 500px; height: auto; min-height: 300px; object-fit: contain; border-radius: 16px; box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);">
+                    </div>
+                </div>
+                
+                <div class="product-info" style="background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0;">
+                    <h4 id="product-title" style="color: #00d4ff; font-size: 1.4em; margin-bottom: 10px; font-weight: 600;"></h4>
+                    <p id="product-description" style="color: #e0e6ed; font-size: 14px; line-height: 1.6; margin-bottom: 0;"></p>
+                </div>
+                
+                <div class="json-output" id="json-output" style="font-size: 12px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateGenerateButton() {
+            const productType = document.getElementById('productType').value;
+            const btn = document.getElementById('generateBtn');
+            
+            const productNames = {
+                'hoodie': '🧥 Generate Hoodie',
+                'tshirt': '👕 Generate T-Shirt', 
+                'mug': '☕ Generate Mug'
+            };
+            
+            btn.textContent = productNames[productType] || '🚀 Generate Product';
+            
+            // Update loading message
+            const loadingText = document.querySelector('#loading p');
+            const productDisplayNames = {
+                'hoodie': 'hoodie',
+                'tshirt': 't-shirt',
+                'mug': 'mug'
+            };
+            loadingText.textContent = `Generating your awesome ${productDisplayNames[productType]}... This may take a minute!`;
+        }
+        
+        async function generateProduct() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const productType = document.getElementById('productType').value;
+            const style = document.getElementById('style').value;
+            const quality = document.getElementById('quality').value;
+            
+            if (!prompt) {
+                alert('Please enter a design prompt!');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').textContent = '🔄 Generating...';
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        prompt: prompt,
+                        product_type: productType,
+                        style: style,
+                        quality: quality
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Display results
+                document.getElementById('generated-image').src = data.image_url;
+                document.getElementById('product-title').textContent = data.product_title;
+                document.getElementById('product-description').textContent = data.product_description;
+                document.getElementById('json-output').textContent = JSON.stringify(data, null, 2);
+                
+                document.getElementById('placeholder').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('placeholder').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+                updateGenerateButton(); // Reset button text
+            }
+        }
+        
+        // Allow Enter key to trigger generation
+        document.getElementById('prompt').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateProduct();
+            }
+        });
+        
+        // Initialize button text on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateGenerateButton();
+        });
+    </script>
+</body>
+</html>
