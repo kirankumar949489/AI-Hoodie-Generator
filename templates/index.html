@@ -333,6 +333,13 @@
                     <div class="result-item" style="text-align: center; margin-bottom: 20px;">
                         <img id="generated-image" alt="Generated product" style="width: 100%; max-width: 500px; height: auto; min-height: 300px; object-fit: contain; border-radius: 16px; box-shadow: 0 12px 48px rgba(0, 212, 255, 0.2);">
                     </div>
+                    <div id="mockup-section" class="result-item" style="text-align: center; margin-bottom: 20px; display:none;">
+                        <h4 style="color:#e0e6ed; margin-bottom:10px;">Mockup Preview</h4>
+                        <img id="mockup-image" alt="Mockup preview" style="width: 100%; max-width: 500px; height: auto; min-height: 200px; object-fit: contain; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: white;">
+                        <div style="margin-top:10px;">
+                            <a id="mockup-link" href="#" target="_blank" style="color:#00d4ff; text-decoration: underline;">Open mockup preview in new tab</a>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="product-info" style="background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0;">
@@ -409,6 +416,26 @@
                 
                 // Display results
                 document.getElementById('generated-image').src = data.image_url;
+                
+                const mockupSection = document.getElementById('mockup-section');
+                const mockupImg = document.getElementById('mockup-image');
+                const mockupLink = document.getElementById('mockup-link');
+                
+                // Reset visibility each run
+                mockupSection.style.display = 'none';
+                mockupImg.removeAttribute('src');
+                mockupLink.href = '#';
+                
+                if (data.printful_mockup_url) {
+                    mockupSection.style.display = 'block';
+                    mockupImg.onerror = function() {
+                        console.warn('Mockup image failed to load:', this.src);
+                        mockupSection.style.display = 'none';
+                    };
+                    mockupImg.src = data.printful_mockup_url;
+                    mockupLink.href = data.printful_mockup_url;
+                }
+                
                 document.getElementById('product-title').textContent = data.product_title;
                 document.getElementById('product-description').textContent = data.product_description;
                 document.getElementById('json-output').textContent = JSON.stringify(data, null, 2);
